@@ -128,7 +128,7 @@ pipeline {
         stage('Promote') {
             // agent { label 'main-agent' }
             when {
-                branch 'develop'
+                expression { env.BRANCH_NAME == 'develop' }
             }
             environment {
                 GIT_TOKEN = credentials('GIT_TOKEN')
