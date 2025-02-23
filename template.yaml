@@ -95,6 +95,7 @@ Resources:
             
   TodosDynamoDbTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
     Properties: 
       TableName: !Sub "${Stage}-TodosDynamoDbTable"
       AttributeDefinitions: 
@@ -106,7 +107,6 @@ Resources:
       ProvisionedThroughput: 
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
