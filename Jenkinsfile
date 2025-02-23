@@ -8,16 +8,22 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        DEPLOY_ENV = 'staging'
+        DEPLOY_ENV = (env.BRANCH_NAME == 'main') ? 'production' : 'staging'
     }
 
     stages {
         stage('GetCode') {
             // agent { label 'main-agent' }
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/develop']],
+                    branches: [[name: "*/${env.BRANCH_NAME}"]],
                     userRemoteConfigs: [[
                         url: 'https://github.com/mbedia94/unir-todo-list-aws',
                     ]]
@@ -32,6 +38,9 @@ pipeline {
 
         stage('Static Test') {
             // agent { label 'test-agent' }
+            when {
+                branch 'develop'
+            }
             steps {
                 // checkout scm
                 sh '''
@@ -46,8 +55,6 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements.txt
 
-                    pip list | grep bandit
-                    
                     # Ejecutar Flake8 en /src
                     flake8 --exit-zero --format=pylint src > flake8.out
                 '''
@@ -65,6 +72,12 @@ pipeline {
 
         stage('Deploy') {
             // agent { label 'deploy-agent' }
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
             steps {
                 // checkout scm
                 sh '''
@@ -89,6 +102,12 @@ pipeline {
 
         stage('Rest Test') {
             // agent { label 'test-agent' }
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                }
+            }
             steps {
                 // checkout scm
                 sh '''
@@ -103,23 +122,23 @@ pipeline {
                     pip install -r requirements.txt
 
                      BASE_URL=$(aws cloudformation describe-stacks \
-                        --stack-name todo-list-aws-staging \
+                        --stack-name todo-list-aws-${DEPLOY_ENV} \
                         --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" \
                         --output text)
 
-                    # Verificar que la URL no está vacía
                     if [ -z "$BASE_URL" ]; then
                         echo "ERROR: No se pudo obtener la BASE_URL de la API."
                         exit 1
                     fi
 
                     echo "BASE_URL obtenida: $BASE_URL"
-
-                    # Exportar BASE_URL como variable de entorno
                     export BASE_URL
 
-                    # Ejecutar las pruebas
-                    pytest --junitxml=result-integration.xml test/integration/todoApiTest.py
+                    if [ "${DEPLOY_ENV}" == "production" ]; then
+                        pytest --junitxml=result-integration.xml -m "read_only" test/integration/todoApiTest.py
+                    else
+                        pytest --junitxml=result-integration.xml test/integration/todoApiTest.py
+                    fi
                 '''
                 junit 'result-integration.xml'
             }
@@ -127,9 +146,9 @@ pipeline {
 
         stage('Promote') {
             // agent { label 'main-agent' }
-            // when {
-            //     expression { env.BRANCH_NAME == 'develop' }
-            // }
+            when {
+                branch 'develop'
+            }
             environment {
                 GIT_TOKEN = credentials('GIT_TOKEN')
             }
