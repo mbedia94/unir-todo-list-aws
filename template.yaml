@@ -95,6 +95,7 @@ Resources:
             
   TodosDynamoDbTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
     Properties: 
       TableName: !Sub "${Stage}-TodosDynamoDbTable"
       AttributeDefinitions: 
