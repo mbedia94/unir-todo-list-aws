@@ -14,20 +14,11 @@ pipeline {
         stage('GetCode') {
             // agent { label 'main-agent' }
             steps {
-                def scmVars = checkout scm
-                env.BRANCH_NAME = scmVars.GIT_BRANCH.replaceFirst(/^origin\//, '')
-                echo "Building branch: ${env.BRANCH_NAME}"
-                sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-                '''
-            }
-        }
-
-         stage('Set Environment') {
-            steps {
                 script {
+                    def scmVars = checkout scm
+                    env.BRANCH_NAME = scmVars.GIT_BRANCH.replaceFirst(/^origin\//, '')
+                    echo "Building branch: ${env.BRANCH_NAME}"
+                                        
                     if (env.BRANCH_NAME == 'main') {
                         env.DEPLOY_ENV = 'production'
                     } else {
