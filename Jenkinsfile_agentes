@@ -12,7 +12,7 @@ pipeline {
 
     stages {
         stage('GetCode') {
-            // agent { label 'main-agent' }
+            agent any
             steps {
                 script {
                     def scmVars = checkout scm
@@ -21,27 +21,31 @@ pipeline {
                                         
                     if (env.BRANCH_NAME == 'main') {
                         env.DEPLOY_ENV = 'production'
-                        sh '''
-                            wget https://github.com/mbedia94/todo-list-aws-config/blob/production/samconfig.toml
-                        '''
                     } else {
                         env.DEPLOY_ENV = 'staging'
-                        sh '''
-                            wget https://github.com/mbedia94/todo-list-aws-config/blob/staging/samconfig.toml
-                        '''
                     }
                     echo "Deploying to ${env.DEPLOY_ENV} environment"
                 }
+                sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                    '''
             }
         }
 
         stage('Static Test') {
-            // agent { label 'test-agent' }
+            agent { label 'test-agent' }
             when {
                 branch 'develop'
             }
             steps {
-                // checkout scm
+                sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                '''
+                
                 sh '''
                     python3 -m venv unir
                     . unir/bin/activate
@@ -60,7 +64,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            // agent { label 'deploy-agent' }
+            agent any
             when {
                 anyOf {
                     branch 'develop'
@@ -68,7 +72,12 @@ pipeline {
                 }
             }
             steps {
-                // checkout scm
+                sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                '''
+
                 sh '''
                     aws configure set region ${AWS_REGION}
 
@@ -80,7 +89,7 @@ pipeline {
         }
 
         stage('Rest Test') {
-            // agent { label 'test-agent' }
+            agent { label 'rest-agent' }
             when {
                 anyOf {
                     branch 'develop'
@@ -88,7 +97,12 @@ pipeline {
                 }
             }
             steps {
-                // checkout scm
+                sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                '''
+                
                 sh '''
                     python3 -m venv unir
                     . unir/bin/activate
@@ -118,7 +132,7 @@ pipeline {
         }
 
         stage('Promote') {
-            // agent { label 'main-agent' }
+            agent any
             when {
                 branch 'develop'
             }
@@ -127,6 +141,11 @@ pipeline {
             }
             steps {
                 script {
+                    sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                    '''
                     try {
                         sh '''
                             git config --global user.email "jenkins@unir.com"
@@ -152,7 +171,5 @@ pipeline {
                 }
             }
         }
-
-
     }
 }
