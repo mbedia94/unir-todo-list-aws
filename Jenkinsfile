@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    // agent none
 
     options {
         disableConcurrentBuilds()
@@ -13,14 +13,13 @@ pipeline {
 
     stages {
         stage('GetCode') {
-            agent { label 'main-agent' }
+            // agent { label 'main-agent' }
             steps {
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/develop']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/mbedia94/unir-todo-list-aws',
-                        // credentialsId: 'CREDENTIALS_ID'
                     ]]
                 ])
                 sh '''
@@ -32,9 +31,9 @@ pipeline {
         }
 
         stage('Static Test') {
-            agent { label 'test-agent' }
+            // agent { label 'test-agent' }
             steps {
-                checkout scm
+                // checkout scm
                 sh '''
                     whoami
                     hostname
@@ -60,10 +59,9 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent { label 'deploy-agent' }
+            // agent { label 'deploy-agent' }
             steps {
-                checkout scm
-
+                // checkout scm
                 sh '''
                     whoami
                     hostname
@@ -85,9 +83,9 @@ pipeline {
         }
 
         stage('Rest Test') {
-            agent { label 'test-agent' }
+            // agent { label 'test-agent' }
             steps {
-                checkout scm
+                // checkout scm
                 sh '''
                     whoami
                     hostname
@@ -107,9 +105,13 @@ pipeline {
         }
 
         stage('Promote') {
-            agent { label 'main-agent' }
+            // agent { label 'main-agent' }
             when {
                 branch 'develop'
+            }
+            environment {
+                GIT_TOKEN = credentials('GIT_TOKEN')
+                GIT_REPO = "https://${GIT_TOKEN}@github.com/mbedia94/unir-todo-list-aws.git"
             }
             steps {
                 script {
@@ -124,7 +126,7 @@ pipeline {
 
                             git merge --no-ff develop -m "Merge de develop a main"
 
-                            git push origin main
+                            git push ${GIT_REPO} main
                         '''
                     } catch (Exception e) {
                         error("Fallo en la promoción de la versión a producción.")
