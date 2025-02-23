@@ -11,7 +11,21 @@ pipeline {
     }
 
     stages {
-        stage('Set Environment') {
+        stage('GetCode') {
+            // agent { label 'main-agent' }
+            steps {
+                def scmVars = checkout scm
+                env.BRANCH_NAME = scmVars.GIT_BRANCH.replaceFirst(/^origin\//, '')
+                echo "Building branch: ${env.BRANCH_NAME}"
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+            }
+        }
+
+         stage('Set Environment') {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
@@ -21,30 +35,6 @@ pipeline {
                     }
                     echo "Deploying to ${env.DEPLOY_ENV} environment"
                 }
-            }
-        }
-        
-        stage('GetCode') {
-            // agent { label 'main-agent' }
-            when {
-                anyOf {
-                    branch 'develop'
-                    branch 'main'
-                }
-            }
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${env.BRANCH_NAME}"]],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/mbedia94/unir-todo-list-aws',
-                    ]]
-                ])
-                sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-                '''
             }
         }
 
