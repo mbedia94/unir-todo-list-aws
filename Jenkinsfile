@@ -102,8 +102,24 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements.txt
 
-                    # Ejecutar pruebas de integración con pytest
-                    PYTHONPATH=$(pwd) pytest --junitxml=result-integration.xml test/integration/todoApiTest.py
+                     BASE_URL=$(aws cloudformation describe-stacks \
+                        --stack-name todo-list-aws-staging \
+                        --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" \
+                        --output text)
+
+                    # Verificar que la URL no está vacía
+                    if [ -z "$BASE_URL" ]; then
+                        echo "ERROR: No se pudo obtener la BASE_URL de la API."
+                        exit 1
+                    fi
+
+                    echo "BASE_URL obtenida: $BASE_URL"
+
+                    # Exportar BASE_URL como variable de entorno
+                    export BASE_URL
+
+                    # Ejecutar las pruebas
+                    pytest --junitxml=result-integration.xml test/integration/todoApiTest.py
                 '''
                 junit 'result-integration.xml'
             }
