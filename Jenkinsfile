@@ -42,8 +42,11 @@ pipeline {
                     # Crear entorno virtual y activar
                     python3 -m venv unir
                     . unir/bin/activate
+                    export PATH="${WORKSPACE}/unir/bin:$PATH"
                     pip install --upgrade pip
                     pip install -r requirements.txt
+
+                    pip list | grep bandit
                     
                     # Ejecutar Flake8 en /src
                     flake8 --exit-zero --format=pylint src > flake8.out
@@ -52,6 +55,8 @@ pipeline {
 
                 sh '''
                     # Ejecutar Bandit en /src
+                    . unir/bin/activate
+                    export PATH="${WORKSPACE}/unir/bin:$PATH"
                     bandit --exit-zero -r src -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                 '''
                 recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')]
