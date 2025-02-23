@@ -89,7 +89,7 @@ pipeline {
                     pip install --upgrade pip
                     pip install -r requirements.txt
 
-                     BASE_URL=$(aws cloudformation describe-stacks \
+                    BASE_URL=$(aws cloudformation describe-stacks \
                         --stack-name todo-list-aws-${DEPLOY_ENV} \
                         --query "Stacks[0].Outputs[?OutputKey=='BaseUrlApi'].OutputValue" \
                         --output text)
@@ -101,7 +101,7 @@ pipeline {
 
                     export BASE_URL
 
-                    if [ "${DEPLOY_ENV}" == "production" ]; then
+                    if [ "${DEPLOY_ENV}" = "production" ]; then
                         pytest --junitxml=result-integration.xml -m "read_only" test/integration/todoApiTest.py
                     else
                         pytest --junitxml=result-integration.xml test/integration/todoApiTest.py
