@@ -127,9 +127,9 @@ pipeline {
 
         stage('Promote') {
             // agent { label 'main-agent' }
-            when {
-                expression { env.BRANCH_NAME == 'develop' }
-            }
+            // when {
+            //     expression { env.BRANCH_NAME == 'develop' }
+            // }
             environment {
                 GIT_TOKEN = credentials('GIT_TOKEN')
                 GIT_REPO = "https://${GIT_TOKEN}@github.com/mbedia94/unir-todo-list-aws.git"
