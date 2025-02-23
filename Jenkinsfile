@@ -8,10 +8,22 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
-        DEPLOY_ENV = (env.BRANCH_NAME == 'main') ? 'production' : 'staging'
     }
 
     stages {
+        stage('Set Environment') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        env.DEPLOY_ENV = 'production'
+                    } else {
+                        env.DEPLOY_ENV = 'staging'
+                    }
+                    echo "Deploying to ${env.DEPLOY_ENV} environment"
+                }
+            }
+        }
+        
         stage('GetCode') {
             // agent { label 'main-agent' }
             when {
@@ -44,26 +56,16 @@ pipeline {
             steps {
                 // checkout scm
                 sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-                    
-                    # Crear entorno virtual y activar
                     python3 -m venv unir
                     . unir/bin/activate
-                    export PATH="${WORKSPACE}/unir/bin:$PATH"
                     pip install --upgrade pip
                     pip install -r requirements.txt
 
-                    # Ejecutar Flake8 en /src
                     flake8 --exit-zero --format=pylint src > flake8.out
                 '''
                 recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')]
 
                 sh '''
-                    # Ejecutar Bandit en /src
-                    . unir/bin/activate
-                    export PATH="${WORKSPACE}/unir/bin:$PATH"
                     bandit --exit-zero -r src -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                 '''
                 recordIssues tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')]
@@ -81,20 +83,10 @@ pipeline {
             steps {
                 // checkout scm
                 sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-
-                    # Configurar AWS CLI si es necesario
                     aws configure set region ${AWS_REGION}
 
-                    # Construcción del proyecto
                     sam build
-
-                    # Validar la plantilla de CloudFormation
                     sam validate
-
-                    # Desplegar usando la configuración del archivo samconfig.toml
                     sam deploy --config-env ${DEPLOY_ENV} --no-confirm-changeset --force-upload --no-fail-on-empty-changeset
                 '''
             }
@@ -111,11 +103,6 @@ pipeline {
             steps {
                 // checkout scm
                 sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-
-                    # Crear entorno virtual y activar
                     python3 -m venv unir
                     . unir/bin/activate
                     pip install --upgrade pip
@@ -131,7 +118,6 @@ pipeline {
                         exit 1
                     fi
 
-                    echo "BASE_URL obtenida: $BASE_URL"
                     export BASE_URL
 
                     if [ "${DEPLOY_ENV}" == "production" ]; then
