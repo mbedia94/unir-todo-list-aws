@@ -132,7 +132,6 @@ pipeline {
             // }
             environment {
                 GIT_TOKEN = credentials('GIT_TOKEN')
-                GIT_REPO = "https://${GIT_TOKEN}@github.com/mbedia94/unir-todo-list-aws.git"
             }
             steps {
                 script {
@@ -143,11 +142,17 @@ pipeline {
 
                             git fetch origin
 
+                            if ! git rev-parse --verify develop; then
+                                git checkout -b develop origin/develop
+                            else
+                                git checkout develop
+                            fi
+
                             git checkout main
 
-                            git merge --no-ff develop -m "Merge de develop a main"
+                            git merge --no-ff origin/develop -m "Merge de develop a main"
 
-                            git push ${GIT_REPO} main
+                            git push https://${GIT_TOKEN}@github.com/mbedia94/unir-todo-list-aws.git main
                         '''
                     } catch (Exception e) {
                         error("Fallo en la promoción de la versión a producción.")
