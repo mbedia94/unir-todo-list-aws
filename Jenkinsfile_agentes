@@ -40,7 +40,7 @@ pipeline {
                 branch 'develop'
             }
             steps {
-                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                ws('/home/ubuntu/unir-todo-list-aws') {
                     checkout scm
                 }
                 sh '''
@@ -75,7 +75,7 @@ pipeline {
                 }
             }
             steps {
-                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                ws('/home/ubuntu/unir-todo-list-aws') {
                     checkout scm
                 }
                 sh '''
@@ -103,7 +103,7 @@ pipeline {
                 }
             }
             steps {
-                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                ws('/home/ubuntu/unir-todo-list-aws') {
                     checkout scm
                 }
                 sh '''
@@ -149,7 +149,7 @@ pipeline {
                 GIT_TOKEN = credentials('GIT_TOKEN')
             }
             steps {
-                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                ws('/home/ubuntu/unir-todo-list-aws') {
                     checkout scm
                 }
                 script {
