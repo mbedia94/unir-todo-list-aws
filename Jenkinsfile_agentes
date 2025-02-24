@@ -40,6 +40,7 @@ pipeline {
                 branch 'develop'
             }
             steps {
+                checkout scm
                 sh '''
                         whoami
                         hostname
@@ -97,6 +98,7 @@ pipeline {
                 }
             }
             steps {
+                checkout scm
                 sh '''
                         whoami
                         hostname
