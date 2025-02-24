@@ -75,6 +75,9 @@ pipeline {
                 }
             }
             steps {
+                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                    checkout scm
+                }
                 sh '''
                         whoami
                         hostname
@@ -146,6 +149,9 @@ pipeline {
                 GIT_TOKEN = credentials('GIT_TOKEN')
             }
             steps {
+                ws('/home/jenkins-agent-test/workspace/CP1.4 - Agents') {
+                    checkout scm
+                }
                 script {
                     sh '''
                         whoami
